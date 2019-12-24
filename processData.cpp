@@ -400,10 +400,38 @@ void InsertStationLine(string info, TDataset*& DataTable, void*& pOutput, int& N
 	stringstream	ss(info);
 	int stationID, lineID, pos;
 	ss >> stationID >> lineID >> pos;
+	L1Item<TStation>* pStation = DataTable->StationData->getHead();
+	while (pStation != NULL) {
+		if (pStation->data.getID() == stationID) break;
+		pStation = pStation->pNext;
+	}
+	if (pStation == NULL){
+		int* pData = new int(-1);
+		pOutput = (void*)pData;
+		N = 1;
+		return;
+	}
+	L1Item<TLine>* pLine = DataTable->LineData->getHead();
+	while (pLine != NULL) {
+		if (pLine->data.getID() == lineID) break;
+		pLine = pLine->pNext;
+	}
+	if (pLine == NULL) {
+		int* pData = new int(-1);
+		pOutput = (void*)pData;
+		N = 1;
+		return;
+	}
 	L1Item<TStationLine> * pCur = DataTable->StationLineData->getHead();
 	while (pCur != NULL) {
 		if (pCur->data.getLineID() == lineID) {
-			pos--;
+			--pos;
+		}
+		if (pCur->data.station_id == stationID) {
+			int* pData = new int(-1);
+			pOutput = (void*)pData;
+			N = 1;
+			return;
 		}
 		if (pos == 0) {
 			TStationLine * pNew = new TStationLine(0, stationID, lineID, 0, " ", " ", 0);
