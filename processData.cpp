@@ -345,31 +345,33 @@ void RemoveStation(string station_id, TDataset*& DataTable, void*& pOutput, int&
 	dg.flush();
 	L1Item<TStationLine> * pCur = DataTable->StationLineData->getHead();
 	while (pCur != NULL) {
-		if (pCur->data.station_id == stationID) DataTable->StationLineData->DeleteNode(pCur);
+		if (pCur->data.station_id == stationID) {
+			DataTable->StationLineData->DeleteNode(pCur);
+		}
 		pCur = pCur->pNext;
 	}
-	L1Item<TTrack> * pCurT = DataTable->TrackData->getHead();
-	while (pCurT != NULL) {
-		stringstream	ss(pCurT->data.getGeometry());
-		string temp; getline(ss, temp, '(');
-		string point;
-		string lineString = "";
-		lineString += temp;
-		getline(ss, temp, ')');
-		ss.flush();
-		stringstream	st(temp);
-		while (!st.eof()) {
-			getline(st, point, ',');
-			if (point != delGeometry) {
-				lineString += point;
-			}
-		}
-		lineString += ")\"";
-		pCurT->data.geometry = lineString;
-		pCurT = pCurT->pNext;
-		st.flush();
-		ss.flush();
-	}
+	// L1Item<TTrack> * pCurT = DataTable->TrackData->getHead();
+	// while (pCurT != NULL) {
+	// 	stringstream	ss(pCurT->data.getGeometry());
+	// 	string temp; getline(ss, temp, '(');
+	// 	string point;
+	// 	string lineString = "";
+	// 	lineString += temp;
+	// 	getline(ss, temp, ')');
+	// 	ss.flush();
+	// 	stringstream	st(temp);
+	// 	while (!st.eof()) {
+	// 		getline(st, point, ',');
+	// 		if (point != delGeometry) {
+	// 			lineString += point;
+	// 		}
+	// 	}
+	// 	lineString += ")\"";
+	// 	pCurT->data.geometry = lineString;
+	// 	pCurT = pCurT->pNext;
+	// 	st.flush();
+	// 	ss.flush();
+	// }
 	L1Item<TStation>* delStation = DataTable->StationData->getHead();
 	while (delStation->data.id != stationID) {
 		delStation = delStation->pNext;
@@ -392,9 +394,9 @@ void	UpdateStation(string info, TDataset*& DataTable, void*& pOutput, int& N) {
 	int		stationID;
 	string	name;
 	string 	geometry;
-	int		buildStart;
-	int		opening;
-	int 	closure;
+	int		buildStart = 0;
+	int		opening = 0;
+	int 	closure = 0;
 	stringstream	ss(info);
 	ss >> stationID;
 	ss.ignore(1);
@@ -403,9 +405,9 @@ void	UpdateStation(string info, TDataset*& DataTable, void*& pOutput, int& N) {
 	// : Something wrong with name which contain space
 	// DONE
 	getline(ss, geometry, ',');
-	ss >> buildStart; 	ss.ignore(1);
-	ss >> opening;		ss.ignore(1);
-	ss >> closure;		ss.ignore(1);
+	ss.ignore(100, ',');
+	ss.ignore(100, ',');
+	ss.ignore(100, ',');
 	L1Item<TStation> * pCur = DataTable->StationData->getHead();
 	while (pCur != NULL) {
 		if (pCur->data.id == stationID) {
