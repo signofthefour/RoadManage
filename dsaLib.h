@@ -128,8 +128,10 @@ public:
 		}
 		L1Item<T>* pCurr = this->_pHead;
 		bool (*logicFunc)(T&, void*) = (bool (*)(T&, void*))op;
+        int count = 0;
 		while (pCurr != NULL) {
 			if (logicFunc(pCurr->data, pParam)) {
+                count += 1;
 				resultList->push_back(pCurr->data);
 			}
 			pCurr = pCurr->pNext;

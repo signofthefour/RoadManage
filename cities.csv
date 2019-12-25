@@ -137,7 +137,7 @@ id,name,coords,start_year,url_name,country,country_state
 96,Perth,POINT(115.8666667 -31.95),2017,perth,Australia,
 97,Plymouth,POINT(-4.083333333 50.41666667),2017,plymouth,England,
 87,Naples,POINT(14.25 40.83333333),1976,naples,Italy,
-95,Paris,POINT(2.351828 48.856578),1898,paris,France,
+95,Paris,POINT(2.351828 48.856578),1898,    ,France,
 325,Toulouse,POINT(1.449926716 43.61995892),2018,toulouse,France,
 326,Limoges,POINT(1.249990599 45.82997906),2018,limoges,France,
 89,Newcastle-on-Tyne,POINT(-1.616666667 54.96666667),1835,newcastle-on-tyne,England,

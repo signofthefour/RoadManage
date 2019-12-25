@@ -20,8 +20,8 @@ void ProcessRequest(const char* pRequest, void* pData, void* &pOutput, int &N) {
 	ss.flush();
 	if (request == "CL" && param1 == "") CountLine(DataTable->LineData, pOutput, N);
 	if (request == "CL" && param1 != "") CountLineOfGivenCity(param1, DataTable, pOutput, N);
-	if (request == "LSC") ListStationWithCityName(param1, DataTable, pOutput, N);
-	if (request == "LLC") ListLineWithCityName(param1, DataTable, pOutput, N);
+	if (request == "LSC") ListStationWithCityName(param1 + " " + param2, DataTable, pOutput, N);
+	if (request == "LLC") ListLineWithCityName(param1 + " " + param2, DataTable, pOutput, N);
 	if (request == "LSL") ListStationWithLineID(param1, DataTable, pOutput, N);
 	if (request == "FC")	FindCity(param1, DataTable, pOutput, N);
 	if (request == "FS") 	FindStation(param1, DataTable, pOutput, N);
@@ -43,6 +43,13 @@ void CountLine(L1List<TLine>* LineList, void*& pOutput, int&N) {
 void CountLineOfGivenCity(string city_name, TDataset*& DataTable, void*& pOutput, int& N) {
 	stringstream ss(city_name);
 	ss >> city_name;
+	string temp = "";
+	while (ss.good()) {
+		ss >> temp;
+		if (temp != "")
+			city_name += ' ' + temp;
+		temp = "";
+	}
 	char* cityName = (char*)city_name.c_str();
 	void (*compareName)(TCity&, void*) = (void (*)(TCity&, void*))CompareName<TCity>;
 	DataTable->CityData->traverse(compareName, (void*&)cityName);
@@ -64,7 +71,7 @@ void CountLineOfGivenCity(string city_name, TDataset*& DataTable, void*& pOutput
 		if (resultList == NULL) {
 			N = 1;
 			int* data = new int;
-			*data = -1;
+			*data = 0;
 			pOutput = (void*)data;
 			return;
 		}
@@ -77,18 +84,26 @@ void CountLineOfGivenCity(string city_name, TDataset*& DataTable, void*& pOutput
 void ListStationWithCityName(string city_name, TDataset*& DataTable, void*& pOutput, int& N) {
 	stringstream ss(city_name);
 	ss >> city_name;
+	string temp = "";
+	while (ss.good()) {
+		ss >> temp;
+		if (temp != "")
+			city_name += ' ' + temp;
+		temp = "";
+	}
 	char* cityName = (char*)city_name.c_str();
 	void (*compareName)(TCity&, void*) = (void (*)(TCity&, void*))CompareName<TCity>;
 	DataTable->CityData->traverse(compareName, (void*&)cityName);
 	L1List<TCity>* cityList = (L1List<TCity>*)cityName;
 	if (cityList == NULL) {
-		N = 1;
+		N = 0;
 		int* data = new int;
 		*data = -1;
 		pOutput = (void*)data;
 		return;
 	}
 	else {
+		// TODO: London
 		int cityID = cityList->getHead()->data.getID();
 		int* pData = new int;
 		*pData = cityID;
@@ -96,7 +111,7 @@ void ListStationWithCityName(string city_name, TDataset*& DataTable, void*& pOut
 		DataTable->StationData->traverse(op, (void*&)pData);
 		L1List<TStation>* resultList = (L1List<TStation>*)pData;
 		if (resultList == NULL) {
-			N = 1;
+			N = 0;
 			int* data = new int;
 			*data = -1;
 			pOutput = (void*)data;
@@ -116,12 +131,19 @@ void ListStationWithCityName(string city_name, TDataset*& DataTable, void*& pOut
 void ListLineWithCityName(string city_name, TDataset*& DataTable, void*& pOutput, int& N) {
 	stringstream ss(city_name);
 	ss >> city_name;
+	string temp = "";
+	while (ss.good()) {
+		ss >> temp;
+		if (temp != "")
+			city_name += ' ' + temp;
+		temp = "";
+	}
 	char* cityName = (char*)city_name.c_str();
 	void (*compareName)(TCity&, void*) = (void (*)(TCity&, void*))CompareName<TCity>;
 	DataTable->CityData->traverse(compareName, (void*&)cityName);
 	L1List<TCity>* cityList = (L1List<TCity>*)cityName;
 	if (cityList == NULL) {
-		N = 1;
+		N = 0;
 		int* data = new int;
 		*data = -1;
 		pOutput = (void*)data;
@@ -135,7 +157,7 @@ void ListLineWithCityName(string city_name, TDataset*& DataTable, void*& pOutput
 		DataTable->LineData->traverse(op, (void*&)pData);
 		L1List<TLine>* resultList = (L1List<TLine>*)pData;
 		if (resultList == NULL) {
-			N = 1;
+			N = 0;
 			int* data = new int;
 			*data = -1;
 			pOutput = (void*)data;
@@ -164,7 +186,7 @@ void ListStationWithLineID(string line_id, TDataset*& DataTable, void*& pOutput,
 	DataTable->StationLineData->traverse(op, (void*&)pData);
 	L1List<TStationLine>* resultList = (L1List<TStationLine> * )pData;
 	if (resultList == NULL) {
-		N = 1;
+		N = 0;
 		int* data = new int;
 		*data = -1;
 		pOutput = (void*)data;
@@ -262,9 +284,13 @@ void StationPositionInTrack(string info, TDataset*& DataTable, void*& pOutput, i
 	getline(ts, trackLineString, '(');
 	getline(ts, trackLineString, ')');
 	int pos = 0;
+	bool found = false;
 	stringstream 	extractLinestring(trackLineString);
 	getline(extractLinestring, trackLineString, ',');
-	while (trackLineString != stationGeometry) {
+	if (trackLineString == stationGeometry) {
+		found = true;
+	}
+	while (trackLineString != stationGeometry && !extractLinestring.eof()) {
 		if (ts.eof()) {
 			int* pData = new int(-1);
 			pOutput = (void*)pData;
@@ -273,7 +299,11 @@ void StationPositionInTrack(string info, TDataset*& DataTable, void*& pOutput, i
 		}
 		pos++;
 		getline(extractLinestring, trackLineString, ',');
+		if (trackLineString == stationGeometry) {
+			found = true;
+		}
 	}
+	if (!found) pos = -1;
 	int* pData = new int(pos);
 	pOutput = (void*)pData;
 	N = 1;
@@ -401,49 +431,53 @@ void InsertStationLine(string info, TDataset*& DataTable, void*& pOutput, int& N
 	int stationID, lineID, pos;
 	ss >> stationID >> lineID >> pos;
 	L1Item<TStation>* pStation = DataTable->StationData->getHead();
-	while (pStation != NULL) {
-		if (pStation->data.getID() == stationID) break;
-		pStation = pStation->pNext;
-	}
-	if (pStation == NULL){
-		int* pData = new int(-1);
-		pOutput = (void*)pData;
-		N = 1;
-		return;
-	}
+	// while (pStation != NULL) {
+	// 	if (pStation->data.getID() == stationID) break;
+	// 	pStation = pStation->pNext;
+	// }
+	// if (pStation == NULL){
+	// 	int* pData = new int(-1);
+	// 	pOutput = (void*)pData;
+	// 	N = 1;
+	// 	return;
+	// }
 	L1Item<TLine>* pLine = DataTable->LineData->getHead();
-	while (pLine != NULL) {
-		if (pLine->data.getID() == lineID) break;
-		pLine = pLine->pNext;
-	}
-	if (pLine == NULL) {
-		int* pData = new int(-1);
-		pOutput = (void*)pData;
-		N = 1;
-		return;
-	}
+	// while (pLine != NULL) {
+	// 	if (pLine->data.getID() == lineID) break;
+	// 	pLine = pLine->pNext;
+	// }
+	// if (pLine == NULL) {
+	// 	int* pData = new int(-1);
+	// 	pOutput = (void*)pData;
+	// 	N = 1;
+	// 	return;
+	// }
 	L1Item<TStationLine> * pCur = DataTable->StationLineData->getHead();
+	L1Item<TStationLine> * pPos = DataTable->StationLineData->getHead();
 	while (pCur != NULL) {
 		if (pCur->data.getLineID() == lineID) {
 			--pos;
-		}
-		if (pCur->data.station_id == stationID) {
-			int* pData = new int(-1);
-			pOutput = (void*)pData;
-			N = 1;
-			return;
+			if (pCur->data.station_id == stationID) {
+				int* pData = new int(-1);
+				pOutput = (void*)pData;
+				N = 1;
+				return;
+			}
 		}
 		if (pos == 0) {
-			TStationLine * pNew = new TStationLine(0, stationID, lineID, 0, " ", " ", 0);
-			L1Item<TStationLine> * pNewStation = new L1Item<TStationLine>(*pNew);
-			pNewStation->pNext = pCur->pNext;
-			pCur->pNext = pNewStation;
-			int* pData = new int(0);
-			pOutput = (void*)pData;
-			N = 1;
-			return;
+			pPos = pCur;
 		}
 		pCur = pCur->pNext;
+	}
+	if (pos <= 0) {
+		TStationLine * pNew = new TStationLine(0, stationID, lineID, 0, " ", " ", 0);
+		L1Item<TStationLine> * pNewStation = new L1Item<TStationLine>(*pNew);
+		pNewStation->pNext = pPos->pNext;
+		pPos->pNext = pNewStation;
+		int* pData = new int(0);
+		pOutput = (void*)pData;
+		N = 1;
+		return;
 	}
 	int* pData = new int(-1);
 	pOutput = (void*)pData;
